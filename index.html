@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vysper</title>
+    <link href="./dist/output.css" rel="stylesheet" />
+    <link href="./src/styles/common.css" rel="stylesheet" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        width: fit-content;
+        height: fit-content;
+        background: transparent;
+        -webkit-app-region: no-drag;
+      }
+
+      .command-tab {
+        height: 28px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.4) 0%,
+          rgba(20, 20, 20, 0.5) 100%
+        );
+        backdrop-filter: blur(20px);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 0 12px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 11px;
+        font-weight: 600;
+        width: 100%;
+        min-width: 420px;
+        flex-wrap: nowrap;
+        overflow: visible;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        cursor: grab;
+      }
+
+      .command-tab:active {
+        cursor: grabbing;
+      }
+
+      .command-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-app-region: no-drag;
+      }
+
+      .command-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .command-item i {
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .capture-count {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #3b82f6;
+        color: white;
+        font-size: 10px;
+        min-width: 14px;
+        height: 14px;
+        border-radius: 7px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .command-item.disabled {
+        opacity: 0.3;
+        pointer-events: none;
+      }
+
+      .command-item span {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 11px;
+      }
+
+      .command-item.active {
+        color: #4caf50;
+        text-shadow: 0 1px 2px rgba(76, 175, 80, 0.3);
+      }
+
+      .command-item.active:hover {
+        background: rgba(76, 175, 80, 0.15);
+        color: #4caf50;
+      }
+
+      .command-item.capturing {
+        color: #2196f3;
+        animation: pulse-blue 1.5s infinite;
+      }
+
+      .command-item.capturing:hover {
+        background: rgba(33, 150, 243, 0.15);
+        color: #2196f3;
+      }
+
+      .command-item.typing {
+        color: #ff9800;
+        text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        animation: pulse-orange 2s infinite;
+      }
+
+      .command-item.typing:hover {
+        background: rgba(255, 152, 0, 0.15);
+        color: #ff9800;
+      }
+
+      .command-separator {
+        width: 1px;
+        height: 16px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(255, 255, 255, 0.25),
+          transparent
+        );
+        flex-shrink: 0;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .status-dot.interactive {
+        background-color: #10b981;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+        animation: pulse-green 2s infinite;
+      }
+
+      .status-dot.non-interactive {
+        background: #f44336;
+        box-shadow: 0 0 10px rgba(244, 67, 54, 0.692);
+      }
+
+      #skillIndicator {
+        color: #ffffff;
+        transition: all 0.3s ease;
+      }
+
+      #skillIndicator:hover {
+        color: #ffffff;
+      }
+
+      #skillIndicator.non-interactive {
+        color: #ffffff;
+        opacity: 0.7;
+      }
+
+      #settingsIndicator {
+        color: #ffffff;
+        transition: all 0.3s ease;
+      }
+
+      #settingsIndicator:hover {
+        color: #ffa726;
+        background: rgba(255, 167, 38, 0.15);
+        text-shadow: 0 1px 2px rgba(255, 167, 38, 0.3);
+      }
+
+      @keyframes pulse-green {
+        0% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
+        50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
+      }
+
+      @keyframes pulse-orange {
+        0% { box-shadow: 0 0 5px rgba(255, 152, 0, 0.4); }
+        50% { box-shadow: 0 0 15px rgba(255, 152, 0, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(255, 152, 0, 0.4); }
+      }
+
+      @keyframes pulse-blue {
+        0% { box-shadow: 0 0 5px rgba(33, 150, 243, 0.4); }
+        50% { box-shadow: 0 0 15px rgba(33, 150, 243, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(33, 150, 243, 0.4); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="command-tab">
+      <div class="command-item" id="captureButton" title="Capture Screen (Add to Queue)">
+        <i class="fas fa-camera"></i>
+        <span id="captureCount" class="capture-count"></span>
+      </div>
+      <div class="command-separator"></div>
+      <div class="command-item disabled" id="sendButton" title="Send all captures to AI">
+        <i class="fas fa-paper-plane"></i>
+      </div>
+      <div class="command-separator"></div>
+      <div class="command-item" id="typeButton">
+        <i class="fas fa-keyboard"></i>
+        <span>Type</span>
+      </div>
+      <div class="command-separator"></div>
+      <div class="command-item" id="skillIndicator">
+        <i class="fas fa-brain"></i>
+        <span>General</span>
+      </div>
+      <div class="command-separator"></div>
+      <div class="status-dot non-interactive" id="statusDot"></div>
+    </div>
+
+    <script src="./src/ui/main-window.js"></script>
+  </body>
+</html>
