@@ -4,7 +4,8 @@ const config = require('../core/config');
 const { promptLoader } = require('../../prompt-loader');
 
 const NVIDIA_API_BASE = 'https://integrate.api.nvidia.com/v1/chat/completions';
-const DEFAULT_MODEL = 'mistralai/mistral-small-4-119b-2603';
+const DEFAULT_MODEL = 'moonshotai/kimi-k2.6';
+const VISION_MODEL = 'moonshotai/kimi-k2.6';
 
 class LLMService {
   constructor() {
@@ -13,23 +14,15 @@ class LLMService {
     this.requestCount = 0;
     this.errorCount = 0;
     this.model = DEFAULT_MODEL;
+    this.visionModel = VISION_MODEL;
 
     this.initializeClient();
   }
 
   initializeClient() {
     this.apiKey = process.env.NVIDIA_API_KEY || config.getApiKey('NVIDIA');
-
-    // Allow model override from config, but default to Mistral Small 4
-    const configModel = config.get('llm.nvidia.model');
-    if (configModel && configModel !== DEFAULT_MODEL) {
-      logger.warn('Model override detected in config - forcing Mistral Small 4', {
-        configModel,
-        forcedModel: DEFAULT_MODEL
-      });
-    }
-    // Always use Mistral Small 4 as specified
     this.model = DEFAULT_MODEL;
+    this.visionModel = VISION_MODEL;
 
     if (!this.apiKey) {
       logger.warn('NVIDIA API key not configured', {
@@ -128,7 +121,19 @@ class LLMService {
       });
 
       const requestBody = this.buildVisionRequestBody(imageOrQueue, prompt, activeSkill, sessionMemory);
+      
+      logger.debug('Vision request details', {
+        model: requestBody.model,
+        messageCount: requestBody.messages.length,
+        hasImageContent: requestBody.messages.some(m => 
+          Array.isArray(m.content) && m.content.some(c => c.type === 'image_url')
+        ),
+        maxTokens: requestBody.max_tokens
+      });
+      
+      logger.info('Sending vision request to NVIDIA NIM...');
       const response = await this.executeRequest(requestBody);
+      logger.info('Vision response received', { responseLength: response?.length || 0 });
 
       logger.logPerformance('LLM vision processing', startTime, {
         activeSkill,
@@ -151,11 +156,14 @@ class LLMService {
       this.errorCount++;
       logger.error('LLM vision processing failed', {
         error: error.message,
+        stack: error.stack,
+        errorAnalysis: error.errorAnalysis,
         activeSkill,
         requestId: this.requestCount
       });
 
       if (config.get('llm.nvidia.fallbackEnabled') !== false) {
+        logger.warn('Using fallback response due to vision processing failure');
         return this.generateFallbackResponse(prompt, activeSkill);
       }
 
@@ -347,10 +355,10 @@ class LLMService {
     messages.push({ role: 'user', content: userContent });
 
     return {
-      model: this.model,
+      model: this.visionModel,
       messages,
       temperature: 0.7,
-      max_tokens: 3072, // Increased for longer responses
+      max_tokens: 3072,
       top_p: 0.95
     };
   }
@@ -595,7 +603,12 @@ Remember: Be intelligent about filtering - only provide detailed responses when 
 
   async executeRequest(requestBody) {
     const maxRetries = config.get('llm.nvidia.maxRetries') || 3;
-    const timeout = config.get('llm.nvidia.timeout') || 30000;
+    const isVisionRequest = requestBody.messages?.some(m => 
+      Array.isArray(m.content) && m.content.some(c => c.type === 'image_url')
+    );
+    const timeout = isVisionRequest 
+      ? (config.get('llm.nvidia.visionTimeout') || 120000)
+      : (config.get('llm.nvidia.timeout') || 30000);
 
     logger.debug('Executing NVIDIA NIM request', {
       model: requestBody.model,
@@ -690,6 +703,10 @@ Remember: Be intelligent about filtering - only provide detailed responses when 
             }
 
             if (res.statusCode !== 200) {
+              logger.error('HTTP error response', { 
+                statusCode: res.statusCode, 
+                responseBody: data.substring(0, 500) 
+              });
               reject(new Error(`HTTP ${res.statusCode}: ${data}`));
               return;
             }

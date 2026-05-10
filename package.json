@@ -4,8 +4,10 @@
   "description": "Stealthy Linux-native AI assistant that analyzes your screen and types responses with human-like realism",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --enable-features=UseOzonePlatform --ozone-platform=wayland",
-    "dev": "electron . --disable-gpu --enable-features=UseOzonePlatform --ozone-platform=wayland",
+    "start": "electron .",
+    "start:wayland": "electron . --enable-features=UseOzonePlatform --ozone-platform=wayland",
+    "start:x11": "electron .",
+    "dev": "electron . --disable-gpu",
     "test-speech": "node test-azure-speech.js",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
@@ -19,7 +21,10 @@
     "release": "npm run clean && npm run build:all",
     "postinstall": "electron-builder install-app-deps"
   },
-  "author": "Vysper Team",
+  "author": {
+    "name": "Vysper Team",
+    "email": "team@vysper.app"
+  },
   "license": "ISC",
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",

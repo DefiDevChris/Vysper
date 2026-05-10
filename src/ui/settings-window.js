@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const quitButton = document.getElementById('quitButton');
     const nvidiaKeyInput = document.getElementById('nvidiaKey');
     const autotypeDelayInput = document.getElementById('autotypeDelay');
-    const autotypeWpmInput = document.getElementById('autotypeWpm');
     const testNvidiaBtn = document.getElementById('testNvidiaBtn');
     const windowGapInput = document.getElementById('windowGap');
     const codingLanguageSelect = document.getElementById('codingLanguage');
@@ -103,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadSettingsIntoUI = (settings) => {
         if (settings.nvidiaKey && nvidiaKeyInput) nvidiaKeyInput.value = settings.nvidiaKey;
         if (settings.autotypeDelay && autotypeDelayInput) autotypeDelayInput.value = settings.autotypeDelay;
-        if (settings.autotypeWpm && autotypeWpmInput) autotypeWpmInput.value = settings.autotypeWpm;
         if (settings.windowGap && windowGapInput) windowGapInput.value = settings.windowGap;
         if (settings.codingLanguage && codingLanguageSelect) codingLanguageSelect.value = settings.codingLanguage;
         if (settings.activeSkill && activeSkillSelect) activeSkillSelect.value = settings.activeSkill;
@@ -137,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const settings = {};
         if (nvidiaKeyInput) settings.nvidiaKey = nvidiaKeyInput.value;
         if (autotypeDelayInput) settings.autotypeDelay = autotypeDelayInput.value;
-        if (autotypeWpmInput) settings.autotypeWpm = autotypeWpmInput.value;
         if (windowGapInput) settings.windowGap = windowGapInput.value;
         if (codingLanguageSelect) settings.codingLanguage = codingLanguageSelect.value;
         if (activeSkillSelect) settings.activeSkill = activeSkillSelect.value;
@@ -149,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputs = [
         nvidiaKeyInput,
         autotypeDelayInput,
-        autotypeWpmInput,
         windowGapInput
     ];
 
